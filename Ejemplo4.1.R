@@ -1,0 +1,51 @@
+#Diseño de bloques completos
+
+library(readxl)
+library(agricolae)
+install.packages("pgirmess")
+library(pgirmess)
+
+quimico <- read_excel("Ejercicio4.1.xlsx")
+View(BLQ1)
+
+aq = factor(quimico$Agente)
+bq = factor(quimico$Rollo)
+
+modquimico = lm(Efecto~bq+aq, data = quimico)
+summary.aov(modquimico)
+boxplot(Efecto~Rollo, data = quimico, id=list(method='y'))
+
+#Pruebas para comparar por pares
+scheffe.test(modquimico, 'aq', group = TRUE, console = TRUE, main = 'Efecto del Agente quimico')
+TukeyHSD(aov(modquimico),'aq')
+
+resid = residuals(modquimico)
+
+# H0 las varianzas son iguales hay homocedasticidad
+bartlett.test(modquimico$residuals~aq, data = quimico)
+
+#Prueba de normalidad
+shapiro.test(modquimico$residuals)
+
+#grafico normalidad
+plot(modquimico$fitted.values, modquimico$residuals, main = 'Residuales vs Predichos')
+qqnorm(modquimico$residuals, pch = 15)
+qqline(modquimico$residuals)
+
+#prueba de kuskal wallis
+
+kruskal.test(quimico$Efecto, quimico$Rollo)
+
+kruskal.test(quimico$Efecto, quimico$Agente)
+
+
+??kruskalmc
+
+
+# como no tengo normalidad en los residuales entonces aplico kruskal
+
+kruskal.test(BLQ1$resistencia, BLQ1$bloq)
+
+
+kruskalmc(quimico$Efecto, quimico$Rollo)
+plot(modquimico$fitted.values,modquimico$residuals,main="Residuales vs predicho")
