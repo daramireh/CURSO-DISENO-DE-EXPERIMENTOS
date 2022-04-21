@@ -1,0 +1,256 @@
+---
+title: "Trabajo2"
+author: "Jair Castro, Luis Trujillo, Diego Ramirez H"
+date: "18/4/2022"
+output: pdf_document
+---
+
+# **EJERCICIO 5.8**
+
+Se realiza un experimento para estudiar la influencia de la temperatura de operación y tres tipos de placas de
+recubrimiento de cristal, en la salida luminosa de un tubo de osciloscopio. Se registraron los siguientes datos:
+
+
+```{r setup, warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+
+library(readxl)
+
+df <- read_excel("ejercicio_5.8.xlsx")
+
+library(knitr)
+kable(df)
+
+```
+
+
+## *a) Utilizar a = 0.05 en el análisis. ¿Existe un efecto de interacción significativo? ¿El tipo de cristal o la temperatura afectan la respuesta? ¿A qué conclusiones se llega?*
+
+Se plantea el siguiente modelo para el diseño experimental factorial
+
+$$Y_{ijk}=\mu + \tau_{i} + \beta_{j} + \tau\beta_{ijk} + e_{ijk}$$
+$$i=1,2,3;\ j=1,2,3; \ k = 1,2,3 $$
+$Y_{ijk} =$ Salida luminosa k por el tipo de cristal i con la influencia de la temperatura j 
+
+$\mu =$ media global de la población
+
+$\tau_{i} =$ efecto medio producido por el tipo de cristal i
+
+$\beta_{j} =$ efecto medio producido por la temperatura j
+
+$\tau\beta_{ijk} =$ efecto medio producido por la interacción del efecto tipo de cristal i y la temperatura j
+
+$e_{ijk} ~ N(0,\sigma)$ \ $\tau_1=0$ $\beta_1=0$
+
+## *Gráfica de interacciones*
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+Cristal = factor(df$Cristal)
+Temp = factor(df$Temp)
+Salida = df$Salida
+
+interaction.plot( Cristal,
+                  Temp, 
+                  df$Salida, 
+                   
+                  ylim = c( 500, 1500 ), # eje y
+                  col = c( "#27ae61", "#5499c7", "#e74c3c"), 
+                  lty = c( 1, 3, 5 ), # tipo de lineas
+                  lwd = 2, # grosor de linea
+                  ylab = "Salida",
+                  xlab = "Tipo de Cristal", 
+                  trace.label = "Temperatura")
+```
+
+
+
+## **CONSTRUCCIÓN DEL MODELO**
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(car)
+library(carData)
+library(agricolae)
+
+mod = lm(Salida~Cristal*Temp)
+
+```
+### *Prueba ANOVA de significancia *
+
+Nivel de significancia $\alpha = 0.05$
+
+$H_0: \tau_{1} = \tau_{2} = \tau_{3}$
+$H_1:$ al menos un $\tau_{i} \neq 0$
+
+$H_0: \beta_{1} = \beta_{2} = \beta_{3}$
+$H_1:$ al menos un $\beta_{j} \neq 0$
+
+$H_0: \tau\beta_{ij} = 0, \forall i,j$
+$H_1:$ al menos un $\tau\beta_{ij} \neq 0$
+
+La siguiente tabla ANOVA muestra los resultados de cada nivel en cada factor y la interacción de los mismos.
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+summary(mod)
+```
+
+La siguiente tabla ANOVA muestra los resultados por factor y la interacción entre estos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+ANOVA<-summary(aov(mod))
+ANOVA
+```
+
+Teniendo en cuenta que los resultados de la tabla ANOVA muestran que los factores y sus interacciones muestran diferencias significativas con valores p menores que $\alpha = 0.05$ se rechazan las hipotesis nulas con un nivel de significancia $\alpha = 0.05$ y se concluye que el tipo de cristal, la temperatura y la interacción de ambos factores afectan significativamente la salida luminosa de un tubo de osciloscopio.
+
+
+## **EVALUACIÓN DE LAS DIFERENCIAS ENTRE LOS EFECTOS DE LOS FACTORES**
+
+### *Temperatura*
+
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Temp')
+plot(TukeyHSD(aov(mod),"Temp"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Salida~Temp, data = df)
+```
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en todos los niveles del factor Temperatura se evidencias diferencias en el efecto medio producido sobre la salida luminosa de un tubo de osciloscopio.
+
+
+
+### *Tipo de Cristal*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Cristal')
+plot(TukeyHSD(aov(mod),"Cristal"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Salida~Cristal, data = df)
+```
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en todos los niveles del factor Tipo de Cristal se evidencias diferencias en el efecto medio producido sobre la salida luminosa de un tubo de osciloscopio.
+
+
+### *Interacción entre el factor Tipo de Cristal y el factor Temperatura*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Cristal:Temp')
+plot(TukeyHSD(aov(mod),"Cristal:Temp"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Salida~Temp:Cristal, data = df)
+```
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en las interacciones entre los factores Tipo de Cristal y Temperatura 2:100-1:100, 3:100-1:100, 3:100-2:100, 2:125-1:125, 3:125-1:125, 3:125-2:125  no se evidencian diferencias en el efecto medio producido sobre la salida luminosa de un tubo de osciloscopio toda vez que en el intervalo de confianza de la prueba de contrastes se encuentra el 0, esto también se evidencia gráficamente; mientras que, en las demás interacciones se evidencias diferencias en el efecto medio producido sobre la salida luminosa.
+
+
+
+### *Conclusiones*
+Con base en los resultados de las gráficas anteriores se puede concluir lo siguiente:
+    a) La temperatura 150 da la mayor cantidad de salida luminosa en el tubo de un            osciloscopio, mientras que la temperatura 100 da el menor volumen de salida luminosa.
+    b) Respecto del Tipo de Cristal, se logra evidenciar que los tipos de cristal 1 y 2 ofrecen la mayor cantidad de salida luminosa en el tubo de un osciloscopio y, el tipo     de cristal 3 la menor salida luminosa.
+    c) Las interacciones entre los factores Tipo de Cristal y Temperatura 1 y 150 y 2 y 150 respectivamente, ofrecen la mayor cantidad de salida luminosa, mientras que las interacciones 1 y 100, 2 y 100 y 3 y 100 la menor cantidad de salida luminosa, confirmando los resultados obtenidos en la prueba de TukeyHSD donde estas tres mostraban no tener diferencias significativas en el efecto medio sobre la salida luminosa de un tubo de un osciloscopio.
+
+Estos resultados concuerdan con lo observado en la gráfica de interacciones donde el la
+Temperatura 150 y el Tipo de Cristal 1 mostraron el mayor volumen de salida lumina, mientras que la temperatura 100 arrojaba los resultados más bajos.
+
+
+## *b) Ajustar un modelo apropiado que relacione la salida luminosa con el tipo de cristal y la temperatura.*
+
+Se establece el siguiente modelo lineal para el diseño experimental de dos factores con efectos fijos
+
+$$Y_{ijk}=\mu + \tau_{i} + \beta_{j} + \tau\beta_{ijk} + e_{ijk}$$
+$$i=1,2,3;\ j=1,2,3; \ k = 1,2,3 $$
+$Y_{ijk} =$ Salida luminosa k por el tipo de cristal i con la influencia de la temperatura j 
+
+$\mu =$ media global de la población
+
+$\tau_{i} =$ efecto medio producido por el tipo de cristal i
+
+$\beta_{j} =$ efecto medio producido por la temperatura j
+
+$\tau\beta_{ijk} =$ efecto medio producido por la interacción del efecto medio del tipo de cristal i y la temperatura j
+
+$e_{ijk} ~ N(0,\sigma)$ \ $\tau_1=0$
+
+
+## *c) Analizar los residuales de este experimento. Comentar la adecuación de los modelos que se hayan considerado.*
+
+### *NORMALIDAD $\alpha= 0.05$*
+
+H0: Los residuales del modelo tienen una distribución normal
+H1: Los residuales del modelo no tienen una distribución normal
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+shapiro.test(mod$residuals)
+
+```
+
+Teniendo en cuenta el valor p de la prueba de Shapiro Wilk es mayor que 0.05, no se rechaza la hipotesis nula por lo tanto se comprueba que se cumple el supuesto de normalidad con $\alpha = 0.05$
+
+
+### *QQPLOT*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+qqnorm(mod$residuals, pch=20)
+qqline(mod$residuals)
+```
+
+La grafica de quartiles permite comprobar graficamente la normalidad en los errores.
+
+HOMOCEDASTICIDAD $\alpha = 0.05$
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(mod$fitted.values,mod$residuals,main = "Residuales vs predichos")
+```
+
+### *Tipo de cristal*
+
+H0: Los residuales del Tipo de Cristal del modelo son homocedasticos
+H1: Los residuales del Tipo de Cristal modelo no son homocedasticos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+bartlett.test(mod$residuals~Cristal,data=df)
+```
+
+Dado que el valor p es mayor que 0.05 no se rechaza la hipotesis nula por lo tanto se comprueba el supuesto de homocedasticidad para el Tipo de Cristal con $\alpha = 0.05$
+
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(Cristal,mod$residuals,main = "Residuales vs Cristal")
+```
+
+
+Graficamente comprobamos que los residuales del modelo para el factor Tipo de Cristal tienen un comportamiento homocedastico
+
+
+### *Temperatura*
+
+H0: Los residuales de la Temperatura del modelo son homocedasticos
+H1: Los residuales de la Temperatura modelo no son homocedasticos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+bartlett.test(mod$residuals~Temp,data=df)
+```
+
+Dado que el valor p es mayor que 0.05 no se rechaza la hipotesis nula por lo tanto se comprueba el supuesto mostrando una tendencia homocedastica para el factor Temperatura con $\alpha = 0.05$
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(Temp,mod$residuals,main = "Residuales vs Temperatura")
+```
+
+Graficamente comprobamos que los residuales del modelo para el factor Temperatura tienen un comportamiento homocedastico
+
+
+## *ESPERANZA DEL ERROR TIENDE A CERO*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+mean(mod$residuals)
+```
+El resultado obtenido confirma que la esperanza del error tiende a cero.
+
+Así las cosas, se comprueba que $e_{ijk} ~ N(0,\sigma)$ dandole validez al modelo y los resultados obtenidos y las conclusiones del experimento.
+

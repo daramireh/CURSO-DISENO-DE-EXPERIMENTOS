@@ -1,0 +1,386 @@
+---
+title: "Trabajo2"
+author: "Jair Castro, Luis Trujillo, Diego Ramirez H"
+date: "18/4/2022"
+output: pdf_document
+---
+
+# **EJERCICIO 5.17**
+
+El departamento de control de calidad de una planta de acabados textiles estudia el efecto de varios factores sobre el teñido de una tela de algodón y fibras sintéticas utilizada para fabricar camisas para caballero. Se seleccionaron tres operadores, tres duraciones del ciclo y dos temperaturas, y se tiñeron tres ejemplares pequeños de la tela bajo cada conjunto de condiciones. La tela terminada se comparó con un patrón, y se le asignó una evaluación numérica. Los datos se presentan enseguida. Analizar los datos y sacar conclusiones. Comentar la adecuación del modelo. Se tienen los siguientes datos:
+
+
+```{r setup, warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+
+library(readxl)
+
+df <- read_excel("ejercicio_5.17.xlsx")
+
+library(knitr)
+kable(df)
+
+```
+
+
+*Se plantea el siguiente modelo para el diseño experimental factorial*
+
+$$Y_{ijlk}=\mu + \tau_{i} + \beta_{j} + \gamma_{l} + \tau\beta_{ijk} + \tau\gamma_{ilk} + \gamma\beta_{ljk} + \tau\beta\gamma_{ijlk} + e_{ijlk}$$
+$$i=1,2,3;\ j=1,2,3; \ k = 1,2,3; \ l = 1,2$$
+$Y_{ijlk} =$ evaluación numerica del teñido k por la duración del ciclo i del operador j en la temperatua l
+
+$\mu =$ media global de la población
+
+$\tau_{i} =$ efecto medio producido por la duración del ciclo i
+
+$\beta_{j} =$ efecto medio producido por el operador j
+
+$gamma_{l} =$ efecto medio producido por la temperatura l
+
+$\tau\beta_{ijk} =$ efecto medio producido por la interacción de la duración del ciclo i y el operador j
+
+$\tau\gamma_{ilk} =$ efecto medio producido por la interacción de la duración del ciclo i y la temperatura l
+
+$\gamma\beta_{ljk} =$ efecto medio producido por la interaccion de la temperatura j y el operador j
+
+$\tau\beta\gamma_{ijlk} =$ efecto medio producido por la interacción del efecto duración del ciclo i el operador j y la temperatura l 
+
+$e_{ijlk} ~ N(0,\sigma)$ \ $\tau_1=0$ $\beta_1=0$ $\gamma_1=0$
+
+
+
+## **PRUEBA DE SIGNIFICANCIA POR TABLA ANOVA**
+
+Nivel de significancia $\alpha = 0.05$
+
+$H_0: \tau_{1} = \tau_{2} = \tau_{3}$
+$H_1:$ al menos un $\tau_{i} \neq 0$
+
+$H_0: \beta_{1} = \beta_{2} = \beta_{3}$
+$H_1:$ al menos un $\beta_{j} \neq 0$
+
+$H_0: \gamma_{1} = \gamma_{2}$
+$H_1:$ al menos un $\gamma_{l} \neq 0$
+
+$H_0: \tau\beta_{ij} = 0, \forall i,j$
+$H_1:$ al menos un $\tau\beta_{ij} \neq 0$
+
+$H_0: \tau\gamma_{il} = 0, \forall i,l$
+$H_1:$ al menos un $\tau\gamma_{il} \neq 0$
+
+$H_0: \gamma\beta_{lj} = 0, \forall l,j$
+$H_1:$ al menos un $\gamma\beta_{lj} \neq 0$
+
+$H_0: \tau\gamma\beta_{ilj} = 0, \forall i,l,j$
+$H_1:$ al menos un $\tau\gamma\beta_{ilj} \neq 0$
+
+
+## **CONSTRUCCIÓN DEL MODELO**
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(car)
+library(carData)
+library(agricolae)
+
+Ciclo = factor(df$ciclo)
+Temp = factor(df$temp)
+Operador = factor(df$operador)
+Teñido = df$teñido
+
+mod = lm(Teñido~Ciclo*Operador*Temp)
+```
+
+
+## **Gráfica interacción Duración del Ciclo y Temperatura**
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+interaction.plot( Ciclo,
+                  Temp,
+                  df$teñido, 
+                   
+                  ylim = c( 20, 45 ), # eje y
+                  col = c( "#27ae61", "#5499c7"), 
+                  lty = c( 1, 3, 5 ), # tipo de lineas
+                  lwd = 2, # grosor de linea
+                  ylab = "Evaluación numerica del Teñido",
+                  xlab = "Duración del Ciclo", 
+                  trace.label = "Temperatura"
+                  )
+```
+
+
+## **Gráfica interacción del Operador y Temperatura**
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+
+interaction.plot( Operador,
+                  Temp,
+                  df$teñido, 
+                   
+                  ylim = c( 20, 45 ), # eje y
+                  col = c( "#27ae61", "#5499c7", "#e74c3c"), 
+                  lty = c( 1, 3, 5 ), # tipo de lineas
+                  lwd = 2, # grosor de linea
+                  ylab = "Evaluación numerica del Teñido",
+                  xlab = "Operador", 
+                  trace.label = "Temperatura")
+```
+
+
+## **Gráfica de interacción de la duración del Ciclo y el operador**
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+
+
+interaction.plot( Ciclo,
+                  Operador,
+                  df$teñido, 
+                   
+                  ylim = c( 20, 45 ), # eje y
+                  col = c( "#27ae61", "#5499c7", "#e74c3c"), 
+                  lty = c( 1, 3, 5 ), # tipo de lineas
+                  lwd = 2, # grosor de linea
+                  ylab = "Evaluación Numerica del Teñido",
+                  xlab = "Duración del Ciclo", 
+                  trace.label = "Operador")
+
+```
+
+
+## *ANOVA*
+La siguiente tabla ANOVA muestra los resultados de cada nivel en cada factor y la interacción de los mismos.
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+summary(mod)
+```
+
+La siguiente tabla ANOVA muestra los resultados por factor y la interacción entre estos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+ANOVA<-summary(aov(mod))
+ANOVA
+```
+
+Teniendo en cuenta que los resultados de la tabla ANOVA muestran que los factores y sus interacciones muestran diferencias significativas con valores p menores que $\alpha = 0.05$ se rechazan las hipotesis nulas con un nivel de significancia $\alpha = 0.05$ y se concluye que la Duracción del Ciclo, la Temperatura, el Operador y la interacción de los factores Duración del Ciclo y Temperadura, Duración del Ciclo y Operador y Duración del Ciclo, Operador y Temperatura afectan significativamente la evaluación numerica del teñido de una tela de algodón y fibras sintéticas.
+
+No obstante, la interacción entre los factores Operador y Temperatura no muestran diferencias significativas con un valor p mayor que $\alpha = 0.05$ por lo tanto no se rechaza la hipotesis nula con un nivel de significancia $\alpha = 0.05$.
+
+
+### *ADECUACIÓN DEL MODELO CON BASE EN LOS RESULTADOS DE LA PRUEBA ANOVA*
+
+Con base en los resultados de la tabla ANOVA se establece el siguiente modelo:
+
+$$Y_{ijlk}=\mu + \tau_{i} + \beta_{j} + \gamma_{l} + \tau\beta_{ijk} + \tau\gamma_{ilk} + \tau\beta\gamma_{ijlk} + e_{ijlk}$$
+$$i=1,2,3;\ j=1,2,3; \ k = 1,2,3; \ l = 1,2$$
+
+$Y_{ijlk} =$ evaluación numerica del teñido k por la duración del ciclo i del operador j en la temperatua l
+
+$\mu =$ media global de la población
+
+$\tau_{i} =$ efecto medio producido por la duración del ciclo i
+
+$\beta_{j} =$ efecto medio producido por el operador j
+
+$gamma_{l} =$ efecto medio producido por la temperatura l
+
+$\tau\beta_{ijk} =$ efecto medio producido por la interacción de la duración del ciclo i y el operador j
+
+$\tau\gamma_{ilk} =$ efecto medio producido por la interacción de la duración del ciclo i y la temperatura l
+
+$\tau\beta\gamma_{ijlk} =$ efecto medio producido por la interacción del efecto de la duración del ciclo i el operador j y la temperatura l 
+
+$e_{ijlk} ~ N(0,\sigma)$ \ $\tau_1=0$ $\beta_1=0$ $\gamma_1=0$
+
+
+### **EVALUACIÓN DE LOS SUPUESTOS DEL MODELO $e_{ijlk} ~ N(0,\sigma)$**
+
+### *NORMALIDAD $\alpha= 0.05$*
+
+H0: Los residuales del modelo tienen una distribución normal
+H1: Los residuales del modelo no tienen una distribución normal
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+shapiro.test(mod$residuals)
+
+```
+
+Teniendo en cuenta el valor p de la prueba de Shapiro Wilk es mayor que 0.05, no se rechaza la hipotesis nula por lo tanto se comprueba que se cumple el supuesto de normalidad con $\alpha = 0.05$
+
+
+### *QQPLOT*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+qqnorm(mod$residuals, pch=20)
+qqline(mod$residuals)
+```
+
+
+La grafica de quartiles permite comprobar graficamente la normalidad en los errores.
+
+
+
+### *HOMOCEDASTICIDAD $\alpha = 0.05$*
+
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(mod$fitted.values,mod$residuals,main = "Residuales vs predichos")
+```
+
+#### *Duración del Ciclo*
+
+H0: Los residuales de la Duración del Ciclo del modelo son homocedasticos
+H1: Los residuales de la Duración del Ciclo modelo no son homocedasticos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+bartlett.test(mod$residuals~Ciclo,data=df)
+```
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(Ciclo,mod$residuals,main = "Residuales vs Ciclo")
+```
+
+Dado que el valor p es mayor que 0.05 no se rechaza la hipotesis nula por lo tanto se comprueba el supuesto de homocedasticidad para la Duración del Ciclo con $\alpha = 0.05$
+
+Graficamente comprobamos que los residuales del modelo para el factor Duración del Ciclo tienen un comportamiento homocedastico
+
+
+#### *Operador*
+
+H0: Los residuales de el factor Operador del modelo son homocedasticos
+H1: Los residuales de el factor Operador modelo no son homocedasticos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+bartlett.test(mod$residuals~Operador,data=df)
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(Operador,mod$residuals,main = "Residuales vs Operador")
+```
+
+Dado que el valor p es mayor que 0.05 no se rechaza la hipotesis nula por lo tanto se comprueba el supuesto de homocedasticidad para el factor Operador con $\alpha = 0.05$
+
+
+#### *Temperatura*
+
+H0: Los residuales de la Temperatura del modelo son homocedasticos
+H1: Los residuales de la Temperatura modelo no son homocedasticos
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+bartlett.test(mod$residuals~Temp,data=df)
+```
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+plot(Temp,mod$residuals,main = "Residuales vs Temperatura")
+```
+
+
+Dado que el valor p es menor que 0.05 se rechaza la hipotesis nula pero el valor p es muy cercano a 0.05 por lo tanto se podría concluir que existe una tendencia homocedastica para el factor Temperatura con $\alpha = 0.05$ esto se comprueba con la siguiente gráfica
+
+Graficamente comprobamos que los residuales del modelo para el factor Temperatura tienen un comportamiento tendiente a ser homocedastico
+
+
+#### *ESPERANZA DEL ERROR TIENDE A CERO*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+mean(mod$residuals)
+```
+El resultado obtenido confirma que la esperanza del error tiende a cero.
+
+Así las cosas, se comprueba que $e_{ijk} ~ N(0,\sigma)$ dandole validez al modelo y los resultados obtenidos y las conclusiones del experimento.
+
+
+## **EVALUACIÓN DE LAS DIFERENCIAS ENTRE LOS FACTORES Y SUS INTERACCIONES**
+
+### *Duración del Ciclo*
+
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Ciclo')
+plot(TukeyHSD(aov(mod),"Ciclo"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Teñido~Ciclo, data = df)
+```
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en los niveles 50 - 40 y 60 - 50 se encuentran diferencias significativas mientras que en la pareja de niveles 60 - 40 no se encuentran diferencias significativas en la evaluación numerica del teñido de una tela de algodón y fibras sintéticas.
+
+
+### *Operador*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Operador')
+plot(TukeyHSD(aov(mod),"Operador"))
+```
+
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Teñido~Operador, data = df)
+```
+
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en los niveles 2-1 y 3-2 del factor Operador se evidencias diferencias en el efecto medio producido sobre la evaluación numerica del teñido de la una tela de algodón y fibras sintéticas, mientras que en los niveles 3-1 hay una tendencia a no mostrar diferencias significativas, esto se concluye con base en el intervalo de confianza y el valor p ajustado obtenido el cuál es mayor que $\alpha = 0.05$ pero por una diferencia muy pequeña.
+
+### *Temperatura*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Temp')
+plot(TukeyHSD(aov(mod),"Temp"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Teñido~Temp, data = df)
+```
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en todos los niveles del factor Temperatura se evidencias diferencias en el efecto medio producido sobre la evaluación numerica del teñido de la una tela de algodón y fibras sintéticas
+
+
+
+### *Interacción entre el factor Duración del Ciclo y el factor Temperatura*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Ciclo:Temp')
+plot(TukeyHSD(aov(mod),"Ciclo:Temp"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Teñido~Ciclo:Temp, data = df)
+```
+
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en las interacciones entre los factores Duración del Ciclo y Temperatura 60:300-40:300, 60:350-40:300, 50:350-50:300 y 60:350-60:300 no se evidencian diferencias en el efecto medio producido sobre la evaluación numerica del teñido de una tela de algodón y fibras sintéticas toda vez que en el intervalo de confianza de la prueba de contrastes se encuentra el 0, esto también se evidencia gráficamente; mientras que, en las demás interacciones se evidencias diferencias en el efecto medio producido sobre la evaluación numerica del teñido.
+
+
+### *Interacción entre el factor Duración del Cilo y el factor Operador*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Ciclo:Operador')
+plot(TukeyHSD(aov(mod),"Ciclo:Operador"))
+```
+
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Teñido~Ciclo:Operador, data = df)
+```
+
+
+De acuerdo a los resultados obtenidos en la prueba TukeyHSD se concluir que en las interacciones entre los factores Duración del ciclo y Operador 60:1-40:1, 60:3-40:1, 50:2-50:1, 60:2-50:1, 40:3-50:1, 50:3-50:1, 60:3-60:1, 40:3-40:2, 50:3-40:2, 60:2-50:2, 40:3-50:2, 50:3-50:2, 40:3-60:2, 50:3-60:2, 50:3-40:3 no se evidencian diferencias en el efecto medio producido sobre la evaluación numerica del teñido de una tela de algodón y fibras sintéticas toda vez que en el intervalo de confianza de la prueba de contrastes se encuentra el 0, esto también se evidencia gráficamente; mientras que, en las demás interacciones se evidencias diferencias en el efecto medio producido sobre la evaluación numerica del teñido.
+
+
+### *Interacción entre los factores Duración del Ciclo, Operador y Temperatura*
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+TukeyHSD(aov(mod), 'Ciclo:Operador:Temp')
+#plot(TukeyHSD(aov(mod),"Ciclo:Operador:Temp"))
+```
+
+```{r warning=FALSE,  include=TRUE, message=FALSE, echo=FALSE}
+boxplot(Teñido~Temp:Ciclo:Operador, data = df)
+```
+
+
+## **CONCLUSIONES**
+
+Con base en los resultados anteriores se puede concluir lo siguiente:
+    a) La mayor evaluación numerica del teñido de una tela de algodón y telas sintéticas se obtienen con temperatura igual a 300 y con la duración del ciclo igual a 50, no evidenciando diferencias significativas en la interacción de los tres factores 
+    b) La temperatura igua a 350 da valor bajos de la evaluación numerica y la interacción de los tres factores no muestra diferencias estadísticamente significativas
+    c) La temperatura incide directamente en la evaluación numerica del teñido toda vez que en la interacción de los tres factores, muestra una incidencia estadísticamente significativa logrando que los efectos medios de las interacciones sean estadísticamente iguales en casi todos los niveles de las interacciones en los que la temperatura es igual. Por ejemplo, se evidencian diferencias en los efectos medios cuando la temperatura es 300 respecto de cuando es 350 salvo en aquellas interacciones donde la temperatura es 300 y la duración del ciclo es diferente de 50.
+    d) El operador 2 muestra cierta habilidad para que los efectos medios de la evaluación numerica sea alta respecto de los otros dos operadores, menos cuando el ciclo es de corta duración.
+    e) Los operadores 1 y 3 muestran mayor variabilidad en los efectos que producen comparando la interacción entre los tres factores.
+    f) La duración del ciclo ideal es cuando este es igual a 50, la temperatura ideal es la baja, es decir, cuando es igual a 300 y el operador que muestra mayores resultados es el operador 2.
+    
